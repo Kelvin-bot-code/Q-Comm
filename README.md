@@ -16,3 +16,11 @@ Current encryption (RSA/Elliptic Curve) is vulnerable to future Quantum Computer
 - [ ] Real-time Socket Communication
 - [ ] Integration of Kyber-1024
 - [ ] Traffic Visualization ("Hacker View")
+
+## ✅ Phase 1 Status: Complete
+- [x] Project Setup & Git Initialization
+- [x] "Unsafe" Chat Server (Socket.io)
+- [x] "Unsafe" Frontend (React Terminal UI)
+- [x] Connectivity Testing (Instant message sync)
+
+> **Note:** Current traffic is unencrypted (Plaintext). Phase 2 will introduce PQC layers.
