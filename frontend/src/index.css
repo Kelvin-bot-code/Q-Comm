@@ -1,0 +1,268 @@
+:root {
+  --term-green: #0f0;
+  --term-dim: #004400;
+  --term-dark: #001100;
+  --term-bg: #000;
+  --term-alert: #ff0000;
+  --term-warn: #ffa500;
+  --scanline: rgba(0, 255, 0, 0.05);
+  /* Safe area for iPhone notch */
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background-color: var(--term-bg);
+  color: var(--term-green);
+  font-family: 'Courier New', Courier, monospace;
+  overflow: hidden; /* Prevent body scroll, handle inside app-container */
+  font-size: 16px;
+  -webkit-font-smoothing: none;
+}
+
+/* CRT Scanline Overlay - Pointer events none ensures clicks go through */
+body::after {
+  content: " ";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 9999;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+/* --- ADAPTIVE LAYOUT --- */
+.app-container {
+  display: flex;
+  height: 100dvh; /* Dynamic Height for Mobile Browsers */
+  width: 100vw;
+  background: #000;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Main Chat Interface */
+.main-interface {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: radial-gradient(circle, #051a05 0%, #000 90%);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+/* Hacker Panel - Desktop: Side / Mobile: Overlay */
+.hacker-panel {
+  width: 0;
+  background: #000800;
+  border-left: 1px solid var(--term-dim);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* --- RESPONSIVE MODES --- */
+
+/* DESKTOP (Large Screens) */
+@media (min-width: 769px) {
+  .app-container.hacker-mode .main-interface { width: 65%; flex: none; }
+  .app-container.hacker-mode .hacker-panel { width: 35%; opacity: 1; }
+}
+
+/* MOBILE / TABLET (Small Screens) */
+@media (max-width: 768px) {
+  .app-container.hacker-mode .hacker-panel {
+    position: absolute;
+    top: 60px; /* Below header */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    opacity: 1;
+    border-left: none;
+    border-top: 1px solid var(--term-green);
+  }
+  
+  .header-title { font-size: 1.1rem !important; }
+  .channel-tag { display: none; } /* Hide channel name on very small screens if needed */
+  
+  /* Make buttons bigger for touch */
+  .cyber-button { min-height: 44px; }
+  
+  /* Input area needs to stick to bottom above keyboard */
+  .input-area { padding-bottom: max(10px, var(--safe-bottom)); }
+}
+
+/* --- COMPONENT STYLES --- */
+
+/* Header */
+.terminal-header {
+  height: 60px;
+  flex-shrink: 0;
+  border-bottom: 2px solid var(--term-green);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  background: rgba(0, 20, 0, 0.95);
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+  z-index: 20;
+}
+
+.header-title { font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 5px var(--term-green); font-size: 1.4rem; white-space: nowrap; }
+.channel-tag { font-size: 0.8rem; color: #5a5; margin-left: 10px; }
+.header-controls { display: flex; gap: 8px; align-items: center; }
+
+/* Status Badges */
+.status-badge { font-size: 0.65rem; padding: 2px 4px; border: 1px solid; white-space: nowrap; }
+.verified { color: var(--term-green); border-color: var(--term-green); }
+.unverified { color: var(--term-warn); border-color: var(--term-warn); animation: blink 1s infinite; }
+.status-indicator { color: var(--term-green); text-shadow: 0 0 8px var(--term-green); font-size: 1.2rem; line-height: 0; }
+
+/* Chat Window */
+.chat-interface { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.alert-bar { padding: 8px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; background: rgba(50,0,0,0.3); border-bottom: 1px dashed var(--term-alert); }
+
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 15px;
+  scroll-behavior: smooth;
+  /* subtle grid pattern */
+  background-image: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .03) 25%, rgba(0, 255, 0, .03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .03) 75%, rgba(0, 255, 0, .03) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .03) 25%, rgba(0, 255, 0, .03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .03) 75%, rgba(0, 255, 0, .03) 76%, transparent 77%, transparent);
+  background-size: 30px 30px;
+}
+
+/* Messages */
+.msg-row { margin-bottom: 12px; display: flex; flex-direction: column; width: 100%; }
+.msg-me { align-items: flex-end; }
+.msg-peer { align-items: flex-start; }
+
+.msg-meta { font-size: 0.65rem; color: #444; margin-bottom: 2px; padding: 0 2px; }
+.msg-me .msg-meta { text-align: right; }
+
+.msg-bubble {
+  max-width: 85%;
+  padding: 8px 12px;
+  background: rgba(0, 20, 0, 0.85);
+  border: 1px solid var(--term-dim);
+  word-wrap: break-word;
+  position: relative;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.msg-me .msg-bubble { border-color: var(--term-green); color: #fff; border-bottom-right-radius: 0; }
+.msg-peer .msg-bubble { border-color: var(--term-warn); color: #ddd; border-bottom-left-radius: 0; }
+
+.msg-img { max-width: 100%; border: 1px solid var(--term-green); margin-top: 5px; height: auto; display: block; }
+.file-attachment { background: #002200; padding: 8px; border: 1px dashed var(--term-green); display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; }
+
+/* Typing Indicator */
+.typing-indicator { 
+    font-size: 0.7rem; color: var(--term-green); padding: 5px 15px; 
+    font-style: italic; animation: blink 1s infinite;
+}
+
+/* Input Area - Critical for Mobile */
+.input-area {
+  padding: 10px;
+  background: #000;
+  border-top: 1px solid var(--term-dim);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0; /* Never shrink */
+}
+
+.cyber-input {
+  background: #050505;
+  border: 1px solid var(--term-dim);
+  color: var(--term-green);
+  padding: 8px 12px;
+  font-family: inherit;
+  outline: none;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  border-radius: 0;
+}
+.cyber-input:focus { border-color: var(--term-green); }
+.message-input { flex: 1; min-width: 0; } /* min-width 0 prevents flex overflow */
+
+/* Buttons */
+.cyber-button {
+  background: #000;
+  border: 1px solid var(--term-green);
+  color: var(--term-green);
+  padding: 0 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  user-select: none;
+}
+.cyber-button:active { background: var(--term-green); color: #000; }
+.cyber-button:disabled { opacity: 0.3; cursor: not-allowed; border-color: #444; color: #444; }
+
+.cyber-button.danger { border-color: var(--term-alert); color: var(--term-alert); }
+.cyber-button.warning { border-color: var(--term-warn); color: var(--term-warn); }
+.cyber-button.icon-btn { padding: 0; width: 44px; flex-shrink: 0; font-size: 1.2rem; }
+.cyber-button.recording { background: var(--term-alert); color: #fff; border-color: #fff; animation: blink 0.5s infinite; }
+
+.cyber-select {
+    background: #000;
+    color: var(--term-green);
+    border: 1px solid var(--term-dim);
+    height: 44px;
+    font-family: inherit;
+}
+
+/* Login Screen - Fully Centered */
+.login-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100dvh; background: #000; padding: 20px; }
+.login-box { width: 100%; max-width: 350px; padding: 25px; border: 2px solid var(--term-green); box-shadow: 0 0 20px rgba(0,255,0,0.15); background: #000500; }
+.login-form { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+.label { font-size: 0.7rem; color: #666; margin-bottom: -10px; text-transform: uppercase; letter-spacing: 1px; }
+
+.recent-item { 
+    padding: 10px; text-align: center; color: #666; border: 1px solid #111; margin-top: 5px; cursor: pointer;
+    transition: 0.2s;
+}
+.recent-item:hover { color: var(--term-green); border-color: var(--term-green); background: #001100; }
+
+/* Hacker Panel Content */
+.hp-tabs { display: flex; height: 44px; border-bottom: 1px solid var(--term-dim); flex-shrink: 0; }
+.hp-tabs div { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; background: #000; font-weight: bold; font-size: 0.9rem; }
+.hp-tabs div.active { color: var(--term-green); background: #001100; border-bottom: 3px solid var(--term-green); }
+
+.hp-content { padding: 10px; display: flex; flex-direction: column; height: calc(100% - 44px); overflow-y: auto; }
+.hp-header { color: var(--term-warn); font-size: 0.8rem; margin: 15px 0 5px 0; font-weight: bold; }
+.hp-canvas { width: 100%; height: 80px; background: #000; border-bottom: 2px solid var(--term-green); margin-bottom: 10px; }
+
+.id-card { border: 1px solid #333; padding: 15px; margin-bottom: 15px; background: #000500; display: flex; flex-direction: column; align-items: center; }
+.id-card.peer { border-color: var(--term-warn); }
+.id-hex { font-size: 0.6rem; word-break: break-all; color: #555; font-family: monospace; text-align: center; margin-top: 10px; width: 100%; }
+
+/* Utilities */
+.full-width { width: 100%; height: 50px; font-size: 1rem; }
+.disconnect-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: red; text-align: center; padding: 20px; }
+.glitch-text { animation: blink 0.15s infinite; font-size: 2rem; margin-bottom: 10px; }
+
+/* Scrollbar Customization */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #003300; }
+::-webkit-scrollbar-thumb:hover { background: #00ff00; }
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
